@@ -9,6 +9,10 @@ export async function getGames(page = 1) {
     params: {
       key: API_KEY,
       page,
+      page_size: 20,
+
+      // ⭐ all-time popularity ranking
+      ordering: "-added,-rating",
     },
   });
 

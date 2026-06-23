@@ -27,10 +27,10 @@ app.set("view engine", "ejs");
 // Routes
 app.get("/", (req, res) => {
 //   res.send("PlayNext is running");
-  res.redirect("/games");
+  res.redirect("/home");
 });
 
-app.get("/games", async (req, res) => {
+app.get("/home", async (req, res) => {
   try {
     const [games, newReleases, upcoming, trending] = await Promise.all([
       getGames(),
@@ -39,7 +39,7 @@ app.get("/games", async (req, res) => {
       getTrendingGames()
     ]);
 
-    res.render("pages/games", {
+    res.render("pages/home", {
       games,
       newReleases,
       upcoming,
