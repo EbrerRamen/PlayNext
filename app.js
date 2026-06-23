@@ -2,6 +2,7 @@ import express from "express";
 import session from "express-session";
 import dotenv from "dotenv";
 import pool from "./config/db.js";
+import { getGames } from "./services/rawg.service.js";
 
 dotenv.config();
 
@@ -25,7 +26,21 @@ app.set("view engine", "ejs");
 
 // Routes
 app.get("/", (req, res) => {
-  res.send("PlayNext is running");
+//   res.send("PlayNext is running");
+  res.redirect("/games");
+});
+
+app.get("/games", async (req, res) => {
+  try {
+    const games = await getGames();
+
+    res.render("pages/games", {
+      games,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Failed to load games");
+  }
 });
 
 app.get("/db-test", async (req, res) => {
