@@ -1,6 +1,7 @@
 import express from "express";
 import session from "express-session";
 import dotenv from "dotenv";
+import pool from "./config/db.js";
 
 dotenv.config();
 
@@ -25,6 +26,22 @@ app.set("view engine", "ejs");
 // Routes
 app.get("/", (req, res) => {
   res.send("PlayNext is running");
+});
+
+app.get("/db-test", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT NOW()");
+    res.json({
+      status: "DB connected",
+      time: result.rows[0],
+    });
+  } catch (err) {
+    console.error("DB ERROR:", err);
+    res.status(500).json({
+      status: "DB connection failed",
+      error: err.message,
+    });
+  }
 });
 
 export default app;
