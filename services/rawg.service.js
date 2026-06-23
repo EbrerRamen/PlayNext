@@ -34,6 +34,25 @@ export async function getNewReleases() {
   return res.data.results;
 }
 
+export async function getUpcomingGames() {
+  const today = new Date();
+  const nextYear = new Date();
+  nextYear.setFullYear(today.getFullYear() + 1);
+
+  const format = (d) => d.toISOString().split("T")[0];
+
+  const res = await axios.get(`${BASE_URL}/games`, {
+    params: {
+      key: API_KEY,
+      dates: `${format(today)},${format(nextYear)}`,
+      ordering: "-added",
+      page_size: 20,
+    },
+  });
+
+  return res.data.results;
+}
+
 // Get single game details
 export async function getGameById(id) {
   const res = await axios.get(`${BASE_URL}/games/${id}`, {
