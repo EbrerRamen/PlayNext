@@ -1,5 +1,23 @@
 <%- include('../partials/header') %>
 
+<h2 class="mb-3">🔥 New Releases</h2>
+
+<div class="d-flex overflow-auto gap-3 pb-3">
+
+  <% newReleases.forEach(game => { %>
+    <div class="card bg-secondary text-white flex-shrink-0" style="width: 200px;">
+
+      <img src="<%= game.background_image %>" class="card-img-top" style="height: 120px; object-fit: cover;">
+
+      <div class="card-body p-2">
+        <small><%= game.name %></small>
+      </div>
+
+    </div>
+  <% }) %>
+
+</div>
+
 <h1 class="mb-4">🎮 Popular Games</h1>
 
 <div class="row">

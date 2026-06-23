@@ -2,7 +2,7 @@ import express from "express";
 import session from "express-session";
 import dotenv from "dotenv";
 import pool from "./config/db.js";
-import { getGames } from "./services/rawg.service.js";
+import { getGames, getNewReleases } from "./services/rawg.service.js";
 
 dotenv.config();
 
@@ -32,11 +32,16 @@ app.get("/", (req, res) => {
 
 app.get("/games", async (req, res) => {
   try {
-    const games = await getGames();
+    const [games, newReleases] = await Promise.all([
+      getGames(),
+      getNewReleases()
+    ]);
 
     res.render("pages/games", {
       games,
+      newReleases
     });
+
   } catch (err) {
     console.error(err);
     res.status(500).send("Failed to load games");

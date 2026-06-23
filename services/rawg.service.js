@@ -15,6 +15,25 @@ export async function getGames(page = 1) {
   return res.data.results;
 }
 
+export async function getNewReleases() {
+  const today = new Date();
+  const last30Days = new Date();
+  last30Days.setDate(today.getDate() - 30);
+
+  const format = (d) => d.toISOString().split("T")[0];
+
+  const res = await axios.get(`${BASE_URL}/games`, {
+    params: {
+      key: API_KEY,
+      dates: `${format(last30Days)},${format(today)}`,
+      ordering: "-added",
+      page_size: 20,
+    },
+  });
+
+  return res.data.results;
+}
+
 // Get single game details
 export async function getGameById(id) {
   const res = await axios.get(`${BASE_URL}/games/${id}`, {
