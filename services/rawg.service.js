@@ -53,6 +53,33 @@ export async function getUpcomingGames() {
   return res.data.results;
 }
 
+export async function getTrendingGames() {
+  const year = new Date().getFullYear();
+  const today = new Date().toISOString().split("T")[0];
+
+  const MIN_METACRITIC = 80;
+  const MIN_ADDED = 1000;
+
+  const res = await axios.get(`${BASE_URL}/games`, {
+    params: {
+      key: API_KEY,
+      dates: `${year}-01-01,${today}`,
+      metacritic: `${MIN_METACRITIC},100`,
+      ordering: "-metacritic",
+      page_size: 40,
+    },
+  });
+
+  return res.data.results
+    .filter(
+      (game) =>
+        game.metacritic >= MIN_METACRITIC &&
+        game.added >= MIN_ADDED
+    )
+    .sort((a, b) => b.metacritic - a.metacritic || b.added - a.added)
+    .slice(0, 20);
+}
+
 // Get single game details
 export async function getGameById(id) {
   const res = await axios.get(`${BASE_URL}/games/${id}`, {

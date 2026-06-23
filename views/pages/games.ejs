@@ -1,61 +1,430 @@
 <%- include('../partials/header') %>
 
-<h2 class="mb-3">🔥 New Releases</h2>
+<% 
+// Helper to map platform slugs to Bootstrap Icons
+const getPlatformIcon = (slug) => {
+  switch (slug) {
+    case 'pc': return 'bi-windows';
+    case 'playstation': return 'bi-playstation';
+    case 'xbox': return 'bi-xbox';
+    case 'nintendo': return 'bi-dpad-fill';
+    case 'android': return 'bi-android2';
+    case 'ios': return 'bi-apple';
+    default: return 'bi-controller';
+  }
+};
 
-<div class="d-flex overflow-auto gap-3 pb-3">
+// Helper for Metacritic score class
+const getMetaClass = (score) => {
+  if (!score) return '';
+  if (score >= 80) return 'meta-badge-high';
+  if (score >= 50) return 'meta-badge-mid';
+  return 'meta-badge-low';
+};
 
-  <% newReleases.forEach(game => { %>
-    <div class="card bg-secondary text-white flex-shrink-0" style="width: 200px;">
+// Format release date helper
+const formatDate = (dateStr) => {
+  if (!dateStr) return 'TBA';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
 
-      <img src="<%= game.background_image %>" class="card-img-top" style="height: 120px; object-fit: cover;">
+// Filter lists to exclude games that have no parent platforms
+const filteredGames = games ? games.filter(g => g.parent_platforms && g.parent_platforms.length > 0) : [];
+const filteredNewReleases = newReleases ? newReleases.filter(g => g.parent_platforms && g.parent_platforms.length > 0) : [];
+const filteredUpcoming = upcoming ? upcoming.filter(g => g.parent_platforms && g.parent_platforms.length > 0) : [];
 
-      <div class="card-body p-2">
-        <small><%= game.name %></small>
-      </div>
+// Identify a game to feature in the Hero section (from newReleases or games)
+const featuredGame = filteredGames.length > 0 ? filteredGames[0] : (filteredNewReleases.length > 0 ? filteredNewReleases[0] : null);
 
-    </div>
-  <% }) %>
+// Extract unique genres for our dynamic client-side filtering list
+const allGenresSet = new Set();
+filteredGames.forEach(game => {
+  if (game.genres) {
+    game.genres.forEach(g => {
+      allGenresSet.add(JSON.stringify({ name: g.name, slug: g.slug }));
+    });
+  }
+});
+const uniqueGenres = Array.from(allGenresSet).map(s => JSON.parse(s));
+%>
 
-</div>
+<% if (featuredGame) { %>
+  <!-- Featured Game Hero Showcase -->
+  <div class="hero-banner">
+    <img src="<%= featuredGame.background_image %>" class="hero-img" alt="<%= featuredGame.name %>">
+    <div class="hero-overlay">
+      <div class="hero-content">
+        <span class="badge bg-danger mb-3 px-3 py-2 text-uppercase tracking-wider fw-bold">
+          <i class="bi bi-fire me-1"></i> Featured Game
+        </span>
+        <h1 class="hero-title text-white"><%= featuredGame.name %></h1>
+        
+        <div class="d-flex align-items-center flex-wrap gap-3 mb-4">
+          <% if (featuredGame.metacritic) { %>
+            <div class="meta-badge <%= getMetaClass(featuredGame.metacritic) %>">
+              Metascore <%= featuredGame.metacritic %>
+            </div>
+          <% } %>
+          
+          <div class="star-rating">
+            <i class="bi bi-star-fill text-warning"></i>
+            <span class="text-white"><%= featuredGame.rating.toFixed(2) %> / 5</span>
+          </div>
 
-<h2 class="mb-3">⏳ Upcoming</h2>
-
-<div class="d-flex overflow-auto gap-3 pb-3">
-
-  <% upcoming.forEach(game => { %>
-    <div class="card bg-dark text-white flex-shrink-0" style="width: 200px;">
-
-      <img src="<%= game.background_image %>" class="card-img-top" style="height: 120px; object-fit: cover;">
-
-      <div class="card-body p-2">
-        <small><%= game.name %></small><br>
-        <small class="text-muted"><%= game.released %></small>
-      </div>
-
-    </div>
-  <% }) %>
-
-</div>
-
-<h1 class="mb-4">🎮 Popular Games</h1>
-
-<div class="row">
-  <% games.forEach(game => { %>
-    <div class="col-md-3 mb-4">
-
-      <div class="card bg-secondary text-white h-100">
-
-        <img src="<%= game.background_image %>" class="card-img-top">
-
-        <div class="card-body">
-          <h6><%= game.name %></h6>
-          <p>⭐ <%= game.rating %></p>
+          <div class="text-secondary fw-medium">
+            <i class="bi bi-calendar3 me-1 text-primary-neon"></i> Released: <%= formatDate(featuredGame.released) %>
+          </div>
         </div>
 
+        <div class="d-flex align-items-center gap-2 mb-4">
+          <% if (featuredGame.parent_platforms) { %>
+            <% featuredGame.parent_platforms.forEach(p => { %>
+              <span class="genre-tag" title="<%= p.platform.name %>">
+                <i class="<%= getPlatformIcon(p.platform.slug) %> me-1"></i><%= p.platform.name %>
+              </span>
+            <% }) %>
+          <% } %>
+        </div>
+
+        <div class="d-flex gap-3">
+          <button class="bookmark-btn position-static active d-inline-flex px-4 py-2 rounded fw-semibold btn btn-primary border-0" 
+                  style="background-color: var(--primary-neon); color: #fff; width: auto; height: auto;" 
+                  data-id="<%= featuredGame.id %>" 
+                  data-name="<%= featuredGame.name %>" 
+                  data-image="<%= featuredGame.background_image %>">
+            <i class="bi bi-bookmark-plus me-2"></i>Add to Backlog
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+<% } %>
+
+<!-- 🔥 New Releases Section -->
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h2 class="h3 fw-bold mb-0 text-white">
+    <span class="text-danger me-2">🔥</span> New Releases
+  </h2>
+  <span class="text-secondary small">Recently launched games</span>
+</div>
+
+<div class="scroll-container">
+  <% filteredNewReleases.forEach(game => { %>
+    <div class="game-card flex-shrink-0" style="width: 240px;">
+      <div class="card-img-wrapper" style="height: 140px;">
+        <% if (game.metacritic) { %>
+          <div class="card-badge-overlay">
+            <span class="meta-badge <%= getMetaClass(game.metacritic) %>"><%= game.metacritic %></span>
+          </div>
+        <% } %>
+        <!-- Bookmark icon -->
+        <button class="bookmark-btn" data-id="<%= game.id %>" data-name="<%= game.name %>" data-image="<%= game.background_image %>">
+          <i class="bi bi-bookmark-plus"></i>
+        </button>
+        <img src="<%= game.background_image %>" class="card-img-top h-100" alt="<%= game.name %>" style="object-fit: cover;">
       </div>
 
+      <div class="card-body">
+        <div class="d-flex gap-2 mb-2">
+          <% if (game.parent_platforms) { %>
+            <% game.parent_platforms.slice(0, 4).forEach(p => { %>
+              <i class="<%= getPlatformIcon(p.platform.slug) %> platform-icon small" title="<%= p.platform.name %>"></i>
+            <% }) %>
+          <% } %>
+        </div>
+        
+        <h6 class="game-title mb-2 text-white" title="<%= game.name %>"><%= game.name %></h6>
+        
+        <div class="mt-auto pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+          <span class="star-rating">
+            <i class="bi bi-star-fill text-warning"></i>
+            <span class="text-white"><%= game.rating ? game.rating.toFixed(1) : 'N/A' %></span>
+          </span>
+          <span class="text-secondary small fw-medium"><%= formatDate(game.released) %></span>
+        </div>
+      </div>
     </div>
   <% }) %>
+</div>
+
+<!-- ⏳ Upcoming Section -->
+<div class="d-flex align-items-center justify-content-between mt-5 mb-4">
+  <h2 class="h3 fw-bold mb-0 text-white">
+    <span class="text-info me-2">⏳</span> Coming Soon
+  </h2>
+  <span class="text-secondary small">Highly anticipated releases</span>
+</div>
+
+<div class="scroll-container">
+  <% filteredUpcoming.forEach(game => { %>
+    <div class="game-card flex-shrink-0" style="width: 240px;">
+      <div class="card-img-wrapper" style="height: 140px;">
+        <button class="bookmark-btn" data-id="<%= game.id %>" data-name="<%= game.name %>" data-image="<%= game.background_image %>">
+          <i class="bi bi-bookmark-plus"></i>
+        </button>
+        <img src="<%= game.background_image || '/images/placeholder.jpg' %>" class="card-img-top h-100" alt="<%= game.name %>" style="object-fit: cover;">
+      </div>
+
+      <div class="card-body">
+        <div class="d-flex gap-2 mb-2">
+          <% if (game.parent_platforms) { %>
+            <% game.parent_platforms.slice(0, 4).forEach(p => { %>
+              <i class="<%= getPlatformIcon(p.platform.slug) %> platform-icon small" title="<%= p.platform.name %>"></i>
+            <% }) %>
+          <% } %>
+        </div>
+
+        <h6 class="game-title mb-2 text-white" title="<%= game.name %>"><%= game.name %></h6>
+        
+        <div class="mt-auto pt-2 border-top border-secondary border-opacity-25 d-flex align-items-center text-info">
+          <i class="bi bi-calendar3 me-2 small"></i>
+          <span class="small fw-semibold"><%= formatDate(game.released) %></span>
+        </div>
+      </div>
+    </div>
+  <% }) %>
+</div>
+
+<!-- 🎮 Popular Games Grid -->
+<div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mt-5 mb-4 gap-3">
+  <div>
+    <h2 class="h2 fw-bold mb-0 text-white">
+      <span class="text-primary-neon me-2">🎮</span> Popular Games
+    </h2>
+    <p class="text-secondary small mb-0 mt-1">Browse and filter our catalog of player favorites</p>
+  </div>
+</div>
+
+<!-- Search & Filtering Panel -->
+<div class="search-filter-panel">
+  <div class="row align-items-center g-3">
+    <div class="col-lg-4 col-md-5">
+      <div class="search-input-wrapper">
+        <i class="bi bi-search"></i>
+        <input type="text" id="gameSearch" class="search-control" placeholder="Search games by name...">
+      </div>
+    </div>
+    
+    <div class="col-lg-8 col-md-7">
+      <div class="filter-pills-container">
+        <span class="text-secondary fw-semibold small me-2 d-none d-sm-inline">Genres:</span>
+        <button class="filter-pill active" data-genre="all">All</button>
+        <% uniqueGenres.forEach(genre => { %>
+          <button class="filter-pill" data-genre="<%= genre.slug %>"><%= genre.name %></button>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Games Grid -->
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4" id="gamesGrid">
+  <% games.forEach(game => { %>
+    <div class="col game-item-card" data-title="<%= game.name.toLowerCase() %>" data-genres="<%= game.genres ? game.genres.map(g => g.slug).join(',') : '' %>" data-id="<%= game.id %>">
+      <div class="game-card">
+        <div class="card-img-wrapper" style="height: 160px;">
+          <% if (game.metacritic) { %>
+            <div class="card-badge-overlay">
+              <span class="meta-badge <%= getMetaClass(game.metacritic) %>" title="Metacritic score"><%= game.metacritic %></span>
+            </div>
+          <% } %>
+          <button class="bookmark-btn" data-id="<%= game.id %>" data-name="<%= game.name %>" data-image="<%= game.background_image %>">
+            <i class="bi bi-bookmark-plus"></i>
+          </button>
+          <img src="<%= game.background_image %>" class="card-img-top h-100" alt="<%= game.name %>" style="object-fit: cover;">
+        </div>
+
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="d-flex gap-2 flex-wrap">
+              <% if (game.parent_platforms) { %>
+                <% game.parent_platforms.slice(0, 4).forEach(p => { %>
+                  <i class="<%= getPlatformIcon(p.platform.slug) %> platform-icon" title="<%= p.platform.name %>"></i>
+                <% }) %>
+              <% } %>
+            </div>
+            
+            <% if (game.released) { %>
+              <span class="text-secondary small fw-bold text-end"><%= new Date(game.released).getFullYear() %></span>
+            <% } %>
+          </div>
+
+          <h6 class="game-title mb-3 text-white" title="<%= game.name %>" style="height: auto; min-height: 2.7rem;"><%= game.name %></h6>
+          
+          <div class="d-flex flex-wrap gap-1.5 mb-3">
+            <% if (game.genres) { %>
+              <% game.genres.slice(0, 2).forEach(genre => { %>
+                <span class="genre-tag"><%= genre.name %></span>
+              <% }) %>
+            <% } %>
+          </div>
+
+          <div class="mt-auto pt-2 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+            <span class="star-rating">
+              <i class="bi bi-star-fill text-warning"></i>
+              <span class="text-white"><%= game.rating ? game.rating.toFixed(2) : 'N/A' %></span>
+            </span>
+            <% if (game.playtime) { %>
+              <span class="text-secondary small fw-medium" title="Average Playtime">
+                <i class="bi bi-clock me-1"></i><%= game.playtime %>h
+              </span>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% }) %>
+</div>
+
+<!-- Alert empty search results -->
+<div id="noResults" class="text-center py-5 d-none">
+  <i class="bi bi-search-heart text-muted display-4 mb-3 d-block"></i>
+  <h4 class="text-white">No games found matching your filters</h4>
+  <p class="text-secondary">Try searching for something else or changing your genre selection</p>
+</div>
+
+<!-- Backlog Toast Message -->
+<div class="playnext-toast" id="backlogToast">
+  <i class="bi bi-check-circle-fill" id="toastIcon"></i>
+  <span id="toastMsg">Added to backlog!</span>
 </div>
 
 <%- include('../partials/footer') %>
+
+<!-- Client Side Filters & Backlog Manager -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const searchInput = document.getElementById('gameSearch');
+  const filterPills = document.querySelectorAll('.filter-pill');
+  const gameItems = document.querySelectorAll('.game-item-card');
+  const noResultsAlert = document.getElementById('noResults');
+  
+  let activeGenre = 'all';
+  let searchQuery = '';
+
+  // Core filter logic
+  const filterGames = () => {
+    let visibleCount = 0;
+    
+    gameItems.forEach(item => {
+      const title = item.dataset.title || '';
+      const genres = (item.dataset.genres || '').split(',');
+      
+      const matchesSearch = title.includes(searchQuery);
+      const matchesGenre = activeGenre === 'all' || genres.includes(activeGenre);
+      
+      if (matchesSearch && matchesGenre) {
+        item.style.display = 'block';
+        item.classList.add('animate-fade-in');
+        visibleCount++;
+      } else {
+        item.style.display = 'none';
+        item.classList.remove('animate-fade-in');
+      }
+    });
+
+    if (visibleCount === 0) {
+      noResultsAlert.classList.remove('d-none');
+    } else {
+      noResultsAlert.classList.add('d-none');
+    }
+  };
+
+  // Live typing event listener
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value.toLowerCase().trim();
+      filterGames();
+    });
+  }
+
+  // Genre pills event listeners
+  filterPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      filterPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      activeGenre = pill.dataset.genre;
+      filterGames();
+    });
+  });
+
+  // Local Storage Backlog Management
+  const getBacklog = () => JSON.parse(localStorage.getItem('playnext_backlog')) || [];
+  const saveBacklog = (backlog) => localStorage.setItem('playnext_backlog', JSON.stringify(backlog));
+
+  const showToast = (message, isSuccess = true) => {
+    const toast = document.getElementById('backlogToast');
+    const icon = document.getElementById('toastIcon');
+    const msgSpan = document.getElementById('toastMsg');
+    
+    msgSpan.textContent = message;
+    if (isSuccess) {
+      icon.className = 'bi bi-check-circle-fill text-success';
+    } else {
+      icon.className = 'bi bi-dash-circle-fill text-danger';
+    }
+    
+    toast.classList.add('show');
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2500);
+  };
+
+  const updateBookmarkButtons = () => {
+    const backlog = getBacklog();
+    const ids = backlog.map(item => String(item.id));
+    
+    document.querySelectorAll('.bookmark-btn').forEach(btn => {
+      const id = String(btn.dataset.id);
+      const icon = btn.querySelector('i');
+      const isHeroBtn = btn.classList.contains('btn'); // Check if it's the hero main action button
+      
+      if (ids.includes(id)) {
+        btn.classList.add('active');
+        if (icon) icon.className = 'bi bi-bookmark-check-fill';
+        btn.setAttribute('title', 'Remove from Backlog');
+        if (isHeroBtn) {
+          btn.innerHTML = '<i class="bi bi-bookmark-check-fill me-2"></i>In Backlog';
+        }
+      } else {
+        btn.classList.remove('active');
+        if (icon) icon.className = 'bi bi-bookmark-plus';
+        btn.setAttribute('title', 'Add to Backlog');
+        if (isHeroBtn) {
+          btn.innerHTML = '<i class="bi bi-bookmark-plus me-2"></i>Add to Backlog';
+        }
+      }
+    });
+  };
+
+  // Global click delegator for bookmark toggling
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.bookmark-btn');
+    if (!btn) return;
+    
+    e.preventDefault();
+    const id = btn.dataset.id;
+    const name = btn.dataset.name;
+    const image = btn.dataset.image;
+    
+    let backlog = getBacklog();
+    const exists = backlog.some(item => String(item.id) === String(id));
+    
+    if (exists) {
+      backlog = backlog.filter(item => String(item.id) !== String(id));
+      saveBacklog(backlog);
+      showToast(`Removed "${name}" from backlog`, false);
+    } else {
+      backlog.push({ id, name, image });
+      saveBacklog(backlog);
+      showToast(`Added "${name}" to backlog`, true);
+    }
+    
+    updateBookmarkButtons();
+  });
+
+  // Load backlog bookmark status on launch
+  updateBookmarkButtons();
+});
+</script>

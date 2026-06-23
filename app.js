@@ -2,7 +2,7 @@ import express from "express";
 import session from "express-session";
 import dotenv from "dotenv";
 import pool from "./config/db.js";
-import { getGames, getNewReleases, getUpcomingGames } from "./services/rawg.service.js";
+import { getGames, getNewReleases, getUpcomingGames, getTrendingGames } from "./services/rawg.service.js";
 
 dotenv.config();
 
@@ -32,16 +32,18 @@ app.get("/", (req, res) => {
 
 app.get("/games", async (req, res) => {
   try {
-    const [games, newReleases, upcoming] = await Promise.all([
+    const [games, newReleases, upcoming, trending] = await Promise.all([
       getGames(),
       getNewReleases(),
-      getUpcomingGames()
+      getUpcomingGames(),
+      getTrendingGames()
     ]);
 
     res.render("pages/games", {
       games,
       newReleases,
-      upcoming
+      upcoming,
+      trending
     });
 
   } catch (err) {
