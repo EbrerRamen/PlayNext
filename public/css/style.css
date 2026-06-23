@@ -72,6 +72,31 @@ body {
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
 }
 
+.auth-container {
+  background: radial-gradient(circle at top, #0d1117, #05070c);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(20, 20, 30, 0.85);
+  border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+}
+
+.auth-input {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: white;
+}
+
+.auth-input:focus {
+  background: rgba(255,255,255,0.08);
+  border-color: var(--primary-neon);
+  box-shadow: none;
+  color: white;
+}
+
 /* Featured Hero Showcase */
 .hero-banner {
   position: relative;
