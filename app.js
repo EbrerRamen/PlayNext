@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import pool from "./config/db.js";
 import passport from "passport";
 import configurePassport from "./config/passport.js";
+import bcrypt from "bcrypt";
 import { getGames, getNewReleases, getUpcomingGames, getTrendingGames } from "./services/rawg.service.js";
 
 dotenv.config();
