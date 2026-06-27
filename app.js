@@ -5,7 +5,7 @@ import pool from "./config/db.js";
 import passport from "passport";
 import configurePassport from "./config/passport.js";
 import bcrypt from "bcrypt";
-import { getGames, getNewReleases, getUpcomingGames, getTrendingGames, getFeaturedGames } from "./services/rawg.service.js";
+import { getGames, getNewReleases, getUpcomingGames, getTrendingGames, getFeaturedGames, searchGames } from "./services/rawg.service.js";
 
 dotenv.config();
 
@@ -123,6 +123,24 @@ app.get("/games", async (req, res) => {
         console.error(err);
         res.status(500).send("Failed to load games");
     }
+});
+
+app.get("/games/search", async (req, res) => {
+  const query = req.query.q?.trim();
+
+  if (!query) return res.redirect("/games");
+
+  try {
+    const games = await searchGames(query);
+    res.render("pages/games", {
+      games,
+      user: req.user || null,
+      searchQuery: query,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Search failed");
+  }
 });
 
 app.get("/db-test", async (req, res) => {

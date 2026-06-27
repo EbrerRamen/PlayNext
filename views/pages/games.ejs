@@ -67,11 +67,16 @@ const platforms = [
         <!-- Search -->
         <div class="search-wrapper">
           <i class="bi bi-search search-icon"></i>
-          <input type="text"
-                 id="gameSearch"
-                 class="search-control"
-                 placeholder="Search by title…"
-                 autocomplete="off">
+<form action="/games/search" method="GET" class="search-wrapper">
+  <i class="bi bi-search search-icon"></i>
+  <input type="text"
+         name="q"
+         id="gameSearch"
+         class="search-control"
+         placeholder="Search by title…"
+         value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>"
+         autocomplete="off">
+</form>
         </div>
 
         <!-- Sort -->
@@ -115,14 +120,12 @@ const platforms = [
           <li>
             <button class="sidebar-btn active" data-filter="genre" data-value="all">
               All Genres
-              <span class="sidebar-count" id="count-genre-all"><%= allGames.length %></span>
             </button>
           </li>
           <% genres.forEach(g => { %>
           <li>
             <button class="sidebar-btn" data-filter="genre" data-value="<%= g.slug %>">
               <%= g.label %>
-              <span class="sidebar-count" id="count-genre-<%= g.slug %>">0</span>
             </button>
           </li>
           <% }) %>

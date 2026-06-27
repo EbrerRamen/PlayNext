@@ -112,6 +112,21 @@ export async function getTrendingGames() {
     .slice(0, 20);
 }
 
+export async function searchGames(query, page = 1) {
+  const res = await axios.get(`${BASE_URL}/games`, {
+    params: {
+      key: API_KEY,
+      search: query,
+      search_precise: true,
+      page,
+      page_size: 20,
+      ordering: "-rating",
+    },
+  });
+
+  return res.data.results;
+}
+
 // Get single game details
 export async function getGameById(id) {
   const res = await axios.get(`${BASE_URL}/games/${id}`, {
