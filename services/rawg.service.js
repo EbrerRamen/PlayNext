@@ -19,6 +19,34 @@ export async function getGames(page = 1) {
   return res.data.results;
 }
 
+export async function getFeaturedGames() {
+  const today = new Date();
+  const lastYear = new Date();
+  lastYear.setFullYear(today.getFullYear() - 1);
+
+  const format = (d) => d.toISOString().split("T")[0];
+
+  const res = await axios.get(`${BASE_URL}/games`, {
+    params: {
+      key: API_KEY,
+      dates: `${format(lastYear)},${format(today)}`,
+      ordering: "-added",      // 🔥 MOST IMPORTANT (trending)
+      page_size: 20,
+    },
+  });
+
+  let games = res.data.results;
+
+  // Optional: boost better-rated games slightly
+  games.sort((a, b) => {
+    const scoreA = (a.added || 0) * 0.8 + (a.metacritic || 0) * 0.2;
+    const scoreB = (b.added || 0) * 0.8 + (b.metacritic || 0) * 0.2;
+    return scoreB - scoreA;
+  });
+
+  return games;
+}
+
 export async function getNewReleases() {
   const today = new Date();
   const last30Days = new Date();

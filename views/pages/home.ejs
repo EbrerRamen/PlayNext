@@ -35,7 +35,7 @@ const filteredNewReleases = newReleases ? newReleases.filter(g => g.parent_platf
 const filteredUpcoming = upcoming ? upcoming.filter(g => g.parent_platforms && g.parent_platforms.length > 0) : [];
 
 // Identify a game to feature in the Hero section (from newReleases or games)
-const featuredGame = filteredGames.length > 0 ? filteredGames[0] : (filteredNewReleases.length > 0 ? filteredNewReleases[0] : null);
+const filteredFeatured = featured ? featured.filter(g => g.parent_platforms && g.parent_platforms.length > 0) : [];
 
 // Extract unique genres for our dynamic client-side filtering list
 const allGenresSet = new Set();
@@ -49,56 +49,58 @@ filteredGames.forEach(game => {
 const uniqueGenres = Array.from(allGenresSet).map(s => JSON.parse(s));
 %>
 
-<% if (featuredGame) { %>
-  <!-- Featured Game Hero Showcase -->
-  <div class="hero-banner">
-    <img src="<%= featuredGame.background_image %>" class="hero-img" alt="<%= featuredGame.name %>">
-    <div class="hero-overlay">
-      <div class="hero-content">
-        <span class="badge bg-danger mb-3 px-3 py-2 text-uppercase tracking-wider fw-bold">
-          <i class="bi bi-fire me-1"></i> Featured Game
-        </span>
-        <h1 class="hero-title text-white"><%= featuredGame.name %></h1>
+<% if (filteredFeatured.length > 0) { %>
+<div id="featuredCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="4000">
+
+  <div class="carousel-inner">
+    <% filteredFeatured.forEach((game, index) => { %>
+      <div class="carousel-item <%= index === 0 ? 'active' : '' %>">
         
-        <div class="d-flex align-items-center flex-wrap gap-3 mb-4">
-          <% if (featuredGame.metacritic) { %>
-            <div class="meta-badge <%= getMetaClass(featuredGame.metacritic) %>">
-              Metascore <%= featuredGame.metacritic %>
-            </div>
-          <% } %>
-          
-          <div class="star-rating">
-            <i class="bi bi-star-fill text-warning"></i>
-            <span class="text-white"><%= featuredGame.rating.toFixed(2) %> / 5</span>
-          </div>
+        <div class="hero-banner">
+          <img src="<%= game.background_image %>" class="hero-img" alt="<%= game.name %>">
 
-          <div class="text-secondary fw-medium">
-            <i class="bi bi-calendar3 me-1 text-primary-neon"></i> Released: <%= formatDate(featuredGame.released) %>
-          </div>
-        </div>
-
-        <div class="d-flex align-items-center gap-2 mb-4">
-          <% if (featuredGame.parent_platforms) { %>
-            <% featuredGame.parent_platforms.forEach(p => { %>
-              <span class="genre-tag" title="<%= p.platform.name %>">
-                <i class="<%= getPlatformIcon(p.platform.slug) %> me-1"></i><%= p.platform.name %>
+          <div class="hero-overlay">
+            <div class="hero-content">
+              <span class="badge bg-danger mb-3 px-3 py-2 fw-bold">
+                🔥 Featured
               </span>
-            <% }) %>
-          <% } %>
+
+              <h1 class="hero-title text-white"><%= game.name %></h1>
+
+              <div class="d-flex align-items-center flex-wrap gap-3 mb-4">
+                <% if (game.metacritic) { %>
+                  <div class="meta-badge <%= getMetaClass(game.metacritic) %>">
+                    <%= game.metacritic %>
+                  </div>
+                <% } %>
+
+                <div class="text-white">
+                  ⭐ <%= game.rating.toFixed(2) %>
+                </div>
+
+                <div class="text-secondary">
+                  📅 <%= formatDate(game.released) %>
+                </div>
+              </div>
+
+              <div class="d-flex gap-3">
+                <button class="btn btn-primary"
+                        data-id="<%= game.id %>"
+                        data-name="<%= game.name %>"
+                        data-image="<%= game.background_image %>">
+                  + Backlog
+                </button>
+              </div>
+            </div>
+          </div>
+
         </div>
 
-        <div class="d-flex gap-3">
-          <button class="bookmark-btn position-static active d-inline-flex px-4 py-2 rounded fw-semibold btn btn-primary border-0" 
-                  style="background-color: var(--primary-neon); color: #fff; width: auto; height: auto;" 
-                  data-id="<%= featuredGame.id %>" 
-                  data-name="<%= featuredGame.name %>" 
-                  data-image="<%= featuredGame.background_image %>">
-            <i class="bi bi-bookmark-plus me-2"></i>Add to Backlog
-          </button>
-        </div>
       </div>
-    </div>
+    <% }) %>
   </div>
+
+</div>
 <% } %>
 
 <!-- 🔥 New Releases Section -->

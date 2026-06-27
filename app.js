@@ -5,7 +5,7 @@ import pool from "./config/db.js";
 import passport from "passport";
 import configurePassport from "./config/passport.js";
 import bcrypt from "bcrypt";
-import { getGames, getNewReleases, getUpcomingGames, getTrendingGames } from "./services/rawg.service.js";
+import { getGames, getNewReleases, getUpcomingGames, getTrendingGames, getFeaturedGames } from "./services/rawg.service.js";
 
 dotenv.config();
 
@@ -90,11 +90,12 @@ app.get("/logout", (req, res) => {
 
 app.get("/home", async (req, res) => {
     try {
-        const [games, newReleases, upcoming, trending] = await Promise.all([
+        const [games, newReleases, upcoming, trending, featured] = await Promise.all([
             getGames(),
             getNewReleases(),
             getUpcomingGames(),
-            getTrendingGames()
+            getTrendingGames(),
+            getFeaturedGames()
         ]);
 
         res.render("pages/home", {
@@ -102,6 +103,7 @@ app.get("/home", async (req, res) => {
             newReleases,
             upcoming,
             trending,
+            featured,
             user: req.user || null
         });
     } catch (err) {
