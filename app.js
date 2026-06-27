@@ -112,6 +112,19 @@ app.get("/home", async (req, res) => {
     }
 });
 
+app.get("/games", async (req, res) => {
+    try {
+        const games = await getGames();
+        res.render("pages/games", {
+            games,
+            user: req.user || null
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Failed to load games");
+    }
+});
+
 app.get("/db-test", async (req, res) => {
     try {
         const result = await pool.query("SELECT NOW()");
