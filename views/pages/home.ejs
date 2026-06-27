@@ -34,71 +34,110 @@ const filteredGames = games ? games.filter(g => g.parent_platforms && g.parent_p
 const filteredNewReleases = newReleases ? newReleases.filter(g => g.parent_platforms && g.parent_platforms.length > 0) : [];
 const filteredUpcoming = upcoming ? upcoming.filter(g => g.parent_platforms && g.parent_platforms.length > 0) : [];
 
-// Identify a game to feature in the Hero section (from newReleases or games)
-const filteredFeatured = featured ? featured.filter(g => g.parent_platforms && g.parent_platforms.length > 0) : [];
-
-// Extract unique genres for our dynamic client-side filtering list
-const allGenresSet = new Set();
-filteredGames.forEach(game => {
-  if (game.genres) {
-    game.genres.forEach(g => {
-      allGenresSet.add(JSON.stringify({ name: g.name, slug: g.slug }));
-    });
-  }
-});
-const uniqueGenres = Array.from(allGenresSet).map(s => JSON.parse(s));
+const filteredFeatured = featured 
+  ? featured.filter(g => g.parent_platforms && g.parent_platforms.length > 0) 
+  : [];
 %>
 
 <% if (filteredFeatured.length > 0) { %>
-<div id="featuredCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="4000">
+<div id="featuredCarousel"
+     class="carousel slide carousel-fade"
+     data-bs-ride="carousel"
+     data-bs-interval="4000"
+     data-bs-pause="hover">
 
+  <!-- Indicators -->
+  <div class="carousel-indicators">
+    <% filteredFeatured.forEach((_, index) => { %>
+      <button type="button"
+              data-bs-target="#featuredCarousel"
+              data-bs-slide-to="<%= index %>"
+              class="<%= index === 0 ? 'active' : '' %>">
+      </button>
+    <% }) %>
+  </div>
+
+  <!-- Slides -->
   <div class="carousel-inner">
     <% filteredFeatured.forEach((game, index) => { %>
       <div class="carousel-item <%= index === 0 ? 'active' : '' %>">
-        
+
         <div class="hero-banner">
-          <img src="<%= game.background_image %>" class="hero-img" alt="<%= game.name %>">
+          <img src="<%= game.background_image %>"
+               class="hero-img"
+               alt="<%= game.name %>">
 
           <div class="hero-overlay">
             <div class="hero-content">
+
               <span class="badge bg-danger mb-3 px-3 py-2 fw-bold">
                 🔥 Featured
               </span>
 
-              <h1 class="hero-title text-white"><%= game.name %></h1>
+              <h1 class="hero-title text-white">
+                <%= game.name %>
+              </h1>
 
               <div class="d-flex align-items-center flex-wrap gap-3 mb-4">
+                
                 <% if (game.metacritic) { %>
                   <div class="meta-badge <%= getMetaClass(game.metacritic) %>">
-                    <%= game.metacritic %>
+                    Metacritic <%= game.metacritic %>
                   </div>
                 <% } %>
 
-                <div class="text-white">
-                  ⭐ <%= game.rating.toFixed(2) %>
+                <div class="text-white fw-semibold">
+                  ⭐ <%= game.rating ? game.rating.toFixed(2) : 'N/A' %>
                 </div>
 
                 <div class="text-secondary">
                   📅 <%= formatDate(game.released) %>
                 </div>
+
               </div>
 
+              <!-- Platforms -->
+              <div class="d-flex gap-2 mb-4 flex-wrap">
+                <% game.parent_platforms.forEach(p => { %>
+                  <span class="genre-tag">
+                    <i class="<%= getPlatformIcon(p.platform.slug) %>"></i>
+                    <%= p.platform.name %>
+                  </span>
+                <% }) %>
+              </div>
+
+              <!-- Button -->
               <div class="d-flex gap-3">
-                <button class="btn btn-primary"
+                <button class="btn btn-primary px-4 py-2 fw-semibold"
                         data-id="<%= game.id %>"
                         data-name="<%= game.name %>"
                         data-image="<%= game.background_image %>">
-                  + Backlog
+                  + Add to Backlog
                 </button>
               </div>
+
             </div>
           </div>
-
         </div>
 
       </div>
     <% }) %>
   </div>
+
+  <!-- Controls -->
+  <button class="carousel-control-prev"
+          type="button"
+          data-bs-target="#featuredCarousel"
+          data-bs-slide="prev">
+    <span class="carousel-control-prev-icon"></span>
+  </button>
+
+  <button class="carousel-control-next"
+          type="button"
+          data-bs-target="#featuredCarousel"
+          data-bs-slide="next">
+    <span class="carousel-control-next-icon"></span>
+  </button>
 
 </div>
 <% } %>
